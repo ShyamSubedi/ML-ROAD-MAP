@@ -7,7 +7,7 @@ import joblib
 import os
 from datetime import datetime
 
-MODEL_PATH = "Finanance-Fraud-Detection-ML/fraud_detection_xgboost.pkl"
+MODEL_PATH = "MODEL_PATH = "fraud_detection_xgboost.pkl"
 DB_PATH = "Finanance-Fraud-Detection-ML/logs_v2.db"
 
 try:
