@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, HTTPException
 import uvicorn
 import pandas as pd
@@ -7,9 +6,12 @@ import joblib
 import os
 from datetime import datetime
 
-MODEL_PATH = "MODEL_PATH = "fraud_detection_xgboost.pkl"
-DB_PATH = "Finanance-Fraud-Detection-ML/logs_v2.db"
+# ✅ Correct path for Render (must be in root folder of GitHub repo)
+MODEL_PATH = "fraud_detection_xgboost.pkl"
+# ✅ Safe write path on Render
+DB_PATH = "/tmp/logs_v2.db"
 
+# ✅ Load model
 try:
     with open(MODEL_PATH, "rb") as file:
         model = joblib.load(file)
@@ -18,11 +20,14 @@ except Exception as e:
     print(f"❌ Failed to load model: {e}")
     model = None
 
+# ✅ Initialize FastAPI app
 app = FastAPI()
 
+# ✅ Connect to SQLite (Render allows writing to /tmp only)
 conn = sqlite3.connect(DB_PATH, check_same_thread=False)
 cursor = conn.cursor()
 
+# ✅ Create logs table if not exists
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS logs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,6 +64,7 @@ def predict(data: dict):
         probability = model.predict_proba(df)[0][1]
         prediction = int(probability > 0.5)
 
+        # ✅ Log the result
         timestamp = datetime.utcnow().isoformat()
         cursor.execute("""
             INSERT INTO logs (timestamp, amount, prediction, probability)
@@ -74,6 +80,7 @@ def predict(data: dict):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
 
+# ✅ Start command for Render (automatically set PORT)
 if __name__ == "__main__":
     PORT = int(os.getenv("PORT", 8000))
     uvicorn.run("final_api_v2:app", host="0.0.0.0", port=PORT, reload=True)
